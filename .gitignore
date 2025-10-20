@@ -24,7 +24,7 @@ wheels/
 *.egg
 
 # Simulation outputs
-results/
+# results/
 test_results/
 *.log
 

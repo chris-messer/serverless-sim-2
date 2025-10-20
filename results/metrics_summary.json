@@ -1,0 +1,22 @@
+{
+  "simulation_days": 7,
+  "warehouse_size": "2XSmall",
+  "total_dbus": 181.1333333333507,
+  "total_cost": 116.64986666667785,
+  "daily_cost": 16.664266666668265,
+  "monthly_cost": 499.928000000048,
+  "annual_cost": 6082.457333333917,
+  "total_queries": 2057,
+  "dashboard_queries": 2053,
+  "genie_queries": 4,
+  "genie_avg_wait_time": 5.096654982497057,
+  "genie_p50_wait_time": 5.04983465562691,
+  "genie_p95_wait_time": 7.325650289832264,
+  "genie_p99_wait_time": 7.45739526016463,
+  "dashboard_avg_wait_time": 5.161615176099832,
+  "dashboard_p95_wait_time": 9.672462575236567,
+  "avg_clusters": 0.2696161095129451,
+  "max_clusters": 2,
+  "avg_utilization": 0.49213483146067416,
+  "max_queue_depth": 1
+}
