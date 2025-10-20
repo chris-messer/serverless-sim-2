@@ -1,0 +1,97 @@
+# Databricks Serverless SQL Warehouse Simulation Configuration
+# Edit this file to customize your simulation parameters
+
+# ==============================================================================
+# SIMULATION SETTINGS
+# ==============================================================================
+simulation:
+  days: 7                    # Number of days to simulate
+  time_step_seconds: 10.0    # Time resolution (smaller = more accurate but slower)
+  random_seed: 42            # For reproducible results
+
+# ==============================================================================
+# DASHBOARD WORKLOAD
+# ==============================================================================
+dashboard:
+  num_dashboards: 50                # How many dashboards to simulate
+  refreshes_per_day: 6              # How often they refresh (6 = every 4 hours)
+  
+  # Runtime characteristics (seconds)
+  avg_refresh_runtime: 30.0         # Average time per refresh
+  refresh_runtime_std: 10.0         # Standard deviation
+  min_refresh_runtime: 5.0          # Minimum runtime
+  max_refresh_runtime: 120.0        # Maximum runtime
+  
+  # Overlap: how many dashboards refresh at the same time
+  # 0.0 = perfectly spread out, 1.0 = all at once
+  refresh_overlap_factor: 1.0       # All dashboards refresh together
+
+# ==============================================================================
+# GENIE (INTERACTIVE QUERY) WORKLOAD
+# ==============================================================================
+genie:
+  # Concurrent user population
+  peak_concurrent_users_min: 15     # Minimum concurrent users during peak
+  peak_concurrent_users_max: 30     # Maximum concurrent users during peak
+  
+  # Query frequency (configured for ~5 total queries over 7 days)
+  avg_queries_per_user_per_hour: 0.0013   # How often users submit queries
+  
+  # Cache behavior (affects query speed)
+  cache_hit_rate: 0.4               # 40% of queries hit cache (fast)
+  cache_hit_avg_time: 2.0           # Cache hit: ~2 seconds
+  cache_hit_std: 0.5
+  cache_miss_avg_time: 8.0          # Cache miss: ~8 seconds
+  cache_miss_std: 3.0
+  
+  # Business hours (when users are active)
+  business_hours_start: 0           # 24/7 operation
+  business_hours_end: 24            # 24/7 operation
+  
+  # GenAI SQL function usage (optional AI features)
+  fraction_using_genai: 0.0         # 0% use GenAI functions (set to 0.1 for 10%)
+  genai_dbu_per_call: 0.05          # DBU cost per GenAI call
+
+# ==============================================================================
+# SERVERLESS SQL WAREHOUSE CONFIGURATION
+# ==============================================================================
+warehouse:
+  # T-shirt size: 2XSmall, XSmall, Small, Medium, Large, XLarge, 2XLarge, 3XLarge, 4XLarge
+  size: 2XSmall                     # Warehouse size (determines DBUs/hour) - OPTIMIZED FOR COST
+  
+  # Concurrency settings
+  target_concurrency_per_cluster: 4 # How many queries per cluster before scaling
+  
+  # Autoscaling behavior
+  scale_up_threshold: 0.8           # Scale up at 80% utilization
+  scale_down_threshold: 0.3         # Scale down at 30% utilization
+  scale_up_delay_seconds: 10.0      # Fast scale-up
+  scale_down_delay_seconds: 10.0    # Conservative scale-down
+  
+  # Cluster limits (TRUE SERVERLESS: set min_clusters to 0)
+  min_clusters: 0                   # 0 = auto-suspend when idle, 1 = always-on for consistent performance
+  max_clusters: 2                   # Maximum clusters to scale to - OPTIMIZED FOR COST/PERFORMANCE BALANCE
+  
+  # Idle behavior
+  idle_shutdown_seconds: 180.0      # Scale to zero after 3 minutes idle - allows longer idle periods
+
+# ==============================================================================
+# PRICING (adjust for your region/contract)
+# ==============================================================================
+pricing:
+  sql_serverless_dbu_rate: 0.644          # $/DBU for SQL compute (contract rate)
+  serverless_realtime_inference_dbu_rate: 0.644  # $/DBU for GenAI inference
+
+# ==============================================================================
+# NOTES:
+# ==============================================================================
+# - XSmall warehouse = 6 DBUs/hour = $4.20/hour @ $0.70/DBU
+# - Medium warehouse = 24 DBUs/hour = $16.80/hour @ $0.70/DBU
+# - Large warehouse = 40 DBUs/hour = $28.00/hour @ $0.70/DBU
+#
+# - min_clusters=0: True Serverless (auto-suspend, lowest cost)
+# - min_clusters=1: Always-on (consistent performance, higher cost)
+#
+# - For GCP, set sql_serverless_dbu_rate: 0.88
+# - See PRICING_REFERENCE.md for complete DBU rates
+
