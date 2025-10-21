@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import pandas as pd
 import numpy as np
+import yaml
 from pathlib import Path
 
 # Set style
@@ -17,6 +18,16 @@ def create_summary_dashboard():
     # Load data
     df = pd.read_csv('results/warehouse_state_history.csv')
     
+    # Load config for inputs
+    try:
+        with open('config.yaml', 'r') as f:
+            config = yaml.safe_load(f)
+        config_loaded = True
+    except:
+        config_loaded = False
+        print("Warning: Could not load config.yaml")
+    
+    # Load metrics for results
     try:
         import json
         with open('results/metrics_summary.json', 'r') as f:
@@ -36,39 +47,51 @@ def create_summary_dashboard():
     ax_inputs = fig.add_subplot(gs[:, 0])
     ax_inputs.axis('off')
     
-    if metrics_loaded:
+    if config_loaded:
+        # DBU mapping for warehouse sizes
+        dbu_mapping = {
+            "2XSmall": 4.0, "XSmall": 6.0, "Small": 12.0, "Medium": 24.0,
+            "Large": 40.0, "XLarge": 80.0, "2XLarge": 144.0, 
+            "3XLarge": 272.0, "4XLarge": 528.0
+        }
+        warehouse_size = config['warehouse']['size']
+        dbus_per_hour = dbu_mapping.get(warehouse_size, 0.0)
+        min_clusters = config['warehouse']['min_clusters']
+        
         inputs_data = [
             ['SIMULATION CONFIGURATION', ''],
             ['', ''],
-            ['Duration', f"{metrics['simulation_days']} days"],
+            ['Duration', f"{config['simulation']['days']} days"],
             ['', ''],
             ['WAREHOUSE SETTINGS', ''],
             ['', ''],
-            ['Size', metrics['warehouse_size']],
-            ['DBUs per Hour', f"{metrics['total_dbus'] / (metrics['simulation_days'] * 24):.1f}"],
-            ['Min Clusters', '0 (auto-suspend)'],
-            ['Max Clusters', '4'],
-            ['Target Concurrency', '4 queries/cluster'],
+            ['Size', warehouse_size],
+            ['DBUs per Hour', f"{dbus_per_hour:.1f} per cluster"],
+            ['Min Clusters', f"{min_clusters} {'(auto-suspend)' if min_clusters == 0 else '(always-on)'}"],
+            ['Max Clusters', f"{config['warehouse']['max_clusters']}"],
+            ['Target Concurrency', f"{config['warehouse']['target_concurrency_per_cluster']} queries/cluster"],
+            ['Idle Shutdown', f"{config['warehouse']['idle_shutdown_seconds']:.0f} seconds"],
             ['', ''],
             ['WORKLOAD SETTINGS', ''],
             ['', ''],
-            ['Dashboards', '50'],
-            ['Refreshes per Day', '24'],
+            ['Dashboards', f"{config['dashboard']['num_dashboards']}"],
+            ['Refreshes per Day', f"{config['dashboard']['refreshes_per_day']}"],
             ['', ''],
-            ['Total Users', '200'],
-            ['Peak Concurrent Users', '15-30'],
-            ['Queries per User/Hour', '10.0'],
+            ['Peak Concurrent Users', f"{config['genie']['peak_concurrent_users_min']}-{config['genie']['peak_concurrent_users_max']}"],
+            ['Queries per User/Hour', f"{config['genie']['avg_queries_per_user_per_hour']}"],
+            ['Cache Hit Rate', f"{config['genie']['cache_hit_rate']*100:.0f}%"],
+            ['Business Hours', f"{config['genie']['business_hours_start']}-{config['genie']['business_hours_end']}"],
             ['', ''],
             ['PRICING', ''],
             ['', ''],
-            ['SQL Serverless Rate', '$0.70 / DBU'],
-            ['GenAI Inference Rate', '$0.70 / DBU'],
+            ['SQL Serverless Rate', f"${config['pricing']['sql_serverless_dbu_rate']:.3f} / DBU"],
+            ['GenAI Inference Rate', f"${config['pricing']['serverless_realtime_inference_dbu_rate']:.3f} / DBU"],
         ]
     else:
         inputs_data = [
             ['SIMULATION CONFIGURATION', ''],
             ['', ''],
-            ['Status', 'Run simulation first'],
+            ['Status', 'Config file not found'],
         ]
     
     table_inputs = ax_inputs.table(cellText=inputs_data, cellLoc='left', loc='center',
@@ -204,17 +227,12 @@ def create_summary_dashboard():
         perf_data = [
             ['GENIE WAIT TIMES', ''],
             ['', ''],
-            ['Average Wait', f"{metrics['genie_avg_wait_time']:.3f} seconds"],
-            ['P50 (Median)', f"{metrics['genie_p50_wait_time']:.3f} seconds"],
-            ['P95 (95th percentile)', f"{metrics['genie_p95_wait_time']:.3f} seconds"],
-            ['P99 (99th percentile)', f"{metrics['genie_p99_wait_time']:.3f} seconds"],
+            ['Average Wait', f"{metrics['genie_avg_wait_time']:.2f} seconds"],
+            ['P50 (Median)', f"{metrics['genie_p50_wait_time']:.2f} seconds"],
+            ['P95 (95th percentile)', f"{metrics['genie_p95_wait_time']:.2f} seconds"],
+            ['P99 (99th percentile)', f"{metrics['genie_p99_wait_time']:.2f} seconds"],
             ['', ''],
             ['P95 Assessment', p95_status],
-            ['', ''],
-            ['DASHBOARD WAIT TIMES', ''],
-            ['', ''],
-            ['Average Wait', f"{metrics['dashboard_avg_wait_time']:.3f} seconds"],
-            ['P95 Wait', f"{metrics['dashboard_p95_wait_time']:.3f} seconds"],
             ['', ''],
             ['WAREHOUSE BEHAVIOR', ''],
             ['', ''],
@@ -256,7 +274,7 @@ def create_summary_dashboard():
     
     # Style header rows
     for i, row in enumerate(perf_data):
-        if row[0] in ['GENIE WAIT TIMES', 'DASHBOARD WAIT TIMES', 'WAREHOUSE BEHAVIOR', 
+        if row[0] in ['GENIE WAIT TIMES', 'WAREHOUSE BEHAVIOR', 
                       'SCALE-TO-ZERO ANALYSIS', 'QUEUE STATISTICS']:
             table_perf[(i, 0)].set_facecolor('#06A77D')
             table_perf[(i, 0)].set_text_props(weight='bold', color='white', fontsize=12)
@@ -267,7 +285,7 @@ def create_summary_dashboard():
         else:
             table_perf[(i, 0)].set_text_props(weight='bold')
             # Highlight P95
-            if row[0] in ['P95 (95th percentile)', 'P95 Wait']:
+            if row[0] in ['P95 (95th percentile)']:
                 table_perf[(i, 0)].set_facecolor('#FFF9E6')
                 table_perf[(i, 1)].set_facecolor('#FFF9E6')
                 table_perf[(i, 1)].set_text_props(weight='bold')

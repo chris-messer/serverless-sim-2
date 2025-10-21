@@ -6,7 +6,7 @@
 # ==============================================================================
 simulation:
   days: 7                    # Number of days to simulate
-  time_step_seconds: 10.0    # Time resolution (smaller = more accurate but slower)
+  time_step_seconds: 1.0     # Time resolution (smaller = more accurate but slower)
   random_seed: 42            # For reproducible results
 
 # ==============================================================================
@@ -14,7 +14,7 @@ simulation:
 # ==============================================================================
 dashboard:
   num_dashboards: 50                # How many dashboards to simulate
-  refreshes_per_day: 6              # How often they refresh (6 = every 4 hours)
+  refreshes_per_day: 24             # How often they refresh (24 = hourly)
   
   # Runtime characteristics (seconds)
   avg_refresh_runtime: 30.0         # Average time per refresh
@@ -24,7 +24,7 @@ dashboard:
   
   # Overlap: how many dashboards refresh at the same time
   # 0.0 = perfectly spread out, 1.0 = all at once
-  refresh_overlap_factor: 1.0       # All dashboards refresh together
+  refresh_overlap_factor: 0.5       # 50% overlap (moderate spreading)
 
 # ==============================================================================
 # GENIE (INTERACTIVE QUERY) WORKLOAD
@@ -34,8 +34,8 @@ genie:
   peak_concurrent_users_min: 15     # Minimum concurrent users during peak
   peak_concurrent_users_max: 30     # Maximum concurrent users during peak
   
-  # Query frequency (configured for ~5 total queries over 7 days)
-  avg_queries_per_user_per_hour: 0.0013   # How often users submit queries
+  # Query frequency
+  avg_queries_per_user_per_hour: 2.5      # How often users submit queries
   
   # Cache behavior (affects query speed)
   cache_hit_rate: 0.4               # 40% of queries hit cache (fast)
@@ -57,23 +57,23 @@ genie:
 # ==============================================================================
 warehouse:
   # T-shirt size: 2XSmall, XSmall, Small, Medium, Large, XLarge, 2XLarge, 3XLarge, 4XLarge
-  size: 2XSmall                     # Warehouse size (determines DBUs/hour) - OPTIMIZED FOR COST
+  size: 2XSmall                     # Warehouse size (determines DBUs/hour)
   
   # Concurrency settings
   target_concurrency_per_cluster: 4 # How many queries per cluster before scaling
   
   # Autoscaling behavior
-  scale_up_threshold: 0.8           # Scale up at 80% utilization
+  scale_up_threshold: 0.6           # Scale up at 60% utilization (more aggressive)
   scale_down_threshold: 0.3         # Scale down at 30% utilization
-  scale_up_delay_seconds: 10.0      # Fast scale-up
-  scale_down_delay_seconds: 10.0    # Conservative scale-down
+  scale_up_delay_seconds: 5.0       # Very fast scale-up
+  scale_down_delay_seconds: 30.0    # More conservative scale-down
   
   # Cluster limits (TRUE SERVERLESS: set min_clusters to 0)
   min_clusters: 0                   # 0 = auto-suspend when idle, 1 = always-on for consistent performance
-  max_clusters: 2                   # Maximum clusters to scale to - OPTIMIZED FOR COST/PERFORMANCE BALANCE
+  max_clusters: 10                  # Maximum clusters to scale to
   
   # Idle behavior
-  idle_shutdown_seconds: 180.0      # Scale to zero after 3 minutes idle - allows longer idle periods
+  idle_shutdown_seconds: 600.0      # Scale to zero after 10 minutes idle
 
 # ==============================================================================
 # PRICING (adjust for your region/contract)
