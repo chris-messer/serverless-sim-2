@@ -8,6 +8,10 @@ simulation:
   days: 7                    # Number of days to simulate
   time_step_seconds: 1.0     # Time resolution (smaller = more accurate but slower)
   random_seed: 42            # For reproducible results
+  
+  # Progress logging for long-running simulations
+  enable_progress_logging: true      # Print progress updates during simulation
+  progress_log_interval: 50000       # Print progress every N queries processed
 
 # ==============================================================================
 # DASHBOARD WORKLOAD

@@ -160,6 +160,10 @@ class SimulationConfig:
     # Random seed for reproducibility
     random_seed: int = 42
     
+    # Progress logging for long-running simulations
+    enable_progress_logging: bool = True  # Print progress updates during simulation
+    progress_log_interval: int = 10000  # Print progress every N queries processed
+    
     # Component configurations
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
     genie: GenieConfig = field(default_factory=GenieConfig)

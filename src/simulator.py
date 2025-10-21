@@ -140,6 +140,10 @@ class Simulator:
         last_state_record = 0.0
         state_record_interval = 60.0  # Record state every minute
         
+        # Progress tracking
+        queries_processed = 0
+        last_progress_count = 0
+        
         # Continue until all queries processed and no active queries
         max_time = self.config.total_seconds + 3600  # Add 1 hour buffer for completion
         
@@ -174,6 +178,7 @@ class Simulator:
                     # Query completed
                     self.warehouse.release_query(cluster, current_time)
                     completed_queries.append(query_id)
+                    queries_processed += 1
                     
                     # Update execution record
                     for exec_record in self.query_executions:
@@ -187,6 +192,19 @@ class Simulator:
             
             for query_id in completed_queries:
                 del self.active_queries[query_id]
+            
+            # Progress logging based on queries processed
+            if self.config.enable_progress_logging and self.config.progress_log_interval > 0:
+                if queries_processed - last_progress_count >= self.config.progress_log_interval:
+                    progress_pct = (queries_processed / len(all_queries)) * 100
+                    day = current_time / 86400
+                    self.logger.info(
+                        f"Progress: {queries_processed}/{len(all_queries)} queries processed "
+                        f"({progress_pct:.1f}%) - Day {day:.1f}/{self.config.simulation_days} - "
+                        f"Active: {len(self.active_queries)}, Queued: {len(self.query_queue)}, "
+                        f"Clusters: {len(self.warehouse.clusters)}"
+                    )
+                    last_progress_count = queries_processed
             
             # Process query queue - try to assign waiting queries
             remaining_queue = []
