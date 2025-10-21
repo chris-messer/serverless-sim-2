@@ -14,7 +14,7 @@ simulation:
 # ==============================================================================
 dashboard:
   num_dashboards: 50                # How many dashboards to simulate
-  refreshes_per_day: 24             # How often they refresh (24 = hourly)
+  refreshes_per_day: 6              # How often they refresh (24 = hourly)
   
   # Runtime characteristics (seconds)
   avg_refresh_runtime: 30.0         # Average time per refresh
@@ -31,11 +31,11 @@ dashboard:
 # ==============================================================================
 genie:
   # Concurrent user population
-  peak_concurrent_users_min: 15     # Minimum concurrent users during peak
-  peak_concurrent_users_max: 30     # Maximum concurrent users during peak
+  peak_concurrent_users_min: 38     # Minimum concurrent users during peak
+  peak_concurrent_users_max: 38     # Maximum concurrent users during peak
   
   # Query frequency
-  avg_queries_per_user_per_hour: 2.5      # How often users submit queries
+  avg_queries_per_user_per_hour: 678     # How often users submit queries
   
   # Cache behavior (affects query speed)
   cache_hit_rate: 0.4               # 40% of queries hit cache (fast)
@@ -57,7 +57,7 @@ genie:
 # ==============================================================================
 warehouse:
   # T-shirt size: 2XSmall, XSmall, Small, Medium, Large, XLarge, 2XLarge, 3XLarge, 4XLarge
-  size: 2XSmall                     # Warehouse size (determines DBUs/hour)
+  size: Large                     # Warehouse size (determines DBUs/hour)
   
   # Concurrency settings
   target_concurrency_per_cluster: 4 # How many queries per cluster before scaling
@@ -70,10 +70,10 @@ warehouse:
   
   # Cluster limits (TRUE SERVERLESS: set min_clusters to 0)
   min_clusters: 0                   # 0 = auto-suspend when idle, 1 = always-on for consistent performance
-  max_clusters: 10                  # Maximum clusters to scale to
+  max_clusters: 10                   # Maximum clusters to scale to
   
   # Idle behavior
-  idle_shutdown_seconds: 600.0      # Scale to zero after 10 minutes idle
+  idle_shutdown_seconds: 600.0       # Scale to zero after 1 minute idle
 
 # ==============================================================================
 # PRICING (adjust for your region/contract)

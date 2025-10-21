@@ -151,8 +151,18 @@ class ServerlessWarehouse:
         - Current utilization is below threshold
         - Haven't scaled down too recently
         - Have more than minimum clusters
+        
+        Note: For serverless warehouses (min_clusters=0), scale-down only applies
+        when scaling from multiple clusters to fewer clusters. Scaling to zero
+        should only happen via idle timeout, not scale-down logic.
         """
+        # Don't scale down if at or below minimum clusters
         if len(self.clusters) <= self.config.warehouse.min_clusters:
+            return False
+        
+        # For serverless (min_clusters=0), don't scale down the last cluster
+        # Let idle timeout handle scaling to zero instead
+        if self.config.warehouse.min_clusters == 0 and len(self.clusters) == 1:
             return False
         
         if current_time - self.last_scale_down_time < self.config.warehouse.scale_down_delay_seconds:
